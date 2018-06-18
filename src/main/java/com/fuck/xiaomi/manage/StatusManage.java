@@ -6,17 +6,6 @@ package com.fuck.xiaomi.manage;
  */
 public class StatusManage {
 	
-	//链接抓取完成标志
-	public static volatile boolean  urlFinish = false;
-	
-	//图片下载完成标志
-	public static volatile boolean imgFinish = false;
-	
-	//暂停标志
-	public static volatile boolean isPause = false;
-		
-	//联网标志
-	public static volatile int ping = 999;
 	
 	//登录状态
 	public static volatile boolean isLogin = false;
