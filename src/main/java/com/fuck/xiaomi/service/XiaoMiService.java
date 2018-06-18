@@ -62,8 +62,13 @@ public class XiaoMiService {
 		if(oldUser.getCookies()==null||oldUser.getCookies().size()==0){
 			return false;
 		}
-		String result = httpService.execute(FilePathManage.checkLoginStatusJs);
-		if(result.equals("true")){
+		boolean islogin = false; 
+		for(Cookie cookie : oldUser.getCookies()){
+			if("userId".equals(cookie.getName())){
+				islogin = true;
+			}
+		}
+		if(islogin){
 			Config.user.setCookies(oldUser.getCookies());
 			return true;
 		}
@@ -74,7 +79,7 @@ public class XiaoMiService {
 	/**
 	 * 保持登录状态
 	 */
-	@Timing(initialDelay = 0, period = 10, type = TimingType.FIXED_RATE, unit = TimeUnit.MINUTES)
+	@Async
 	public void keeplogin() {
 		if(!islogin()){
 			StatusManage.isLogin = false;
@@ -95,7 +100,6 @@ public class XiaoMiService {
 			logger.error("用户:{} 登录失败,时间:{}ms,正准备重试。。。建议清空缓存。",Config.user.getUserName(),System.currentTimeMillis()-start);
 			return "fail";
 		}else if(result.equals("pwd")){
-			logger.error("用户名或密码错误！");
 			stop("用户名或密码错误！");
 			return "ok";
 		}else{
