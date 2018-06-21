@@ -12,7 +12,7 @@ import com.alibaba.fastjson.JSON;
 public class CustomRule {
 	
 	//抢购时间
-	private long buyTime;//提前2s,考虑时间误差
+	private long buyTime;//提前9s,考虑时间误差
 	
 	//抢购截止时间
 	private long endTime;
@@ -41,9 +41,6 @@ public class CustomRule {
 	public void builderTime(String startTime,String duration) throws Exception{
 
 		int minute = Integer.parseInt(duration);
-		if(minute>5){
-			throw new Exception("抢购时长不得超过5分钟");
-		}
 		if(minute<=0){
 			throw new Exception("抢购时长必须大于0");
 		}
@@ -54,11 +51,11 @@ public class CustomRule {
 		}catch(Exception e){
 			throw new Exception("时间格式不正确");
 		}
-		this.buyTime = time-8*1000;
+		this.buyTime = time-9*1000;
 		if(buyTime<0){
 			throw new Exception("貌似错过了抢购时间");
 		}
-		if(time<60*1000){
+		if(time<30*1000){
 			throw new Exception("时间太紧，来不及登录啊");
 		}
 		this.endTime = time+minute*60*1000;

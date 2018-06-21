@@ -52,7 +52,6 @@ public abstract class AbstractXiaoMiFunction {
 		
 		public abstract Combo getOption1();
 		public abstract Combo getOption2();
-		public abstract Combo getOption3();
 		
 		
 		//日志显示按钮
@@ -130,14 +129,12 @@ public abstract class AbstractXiaoMiFunction {
 			
 			getOption1().setEnabled(isFinish);
 			getOption2().setEnabled(isFinish);
-			getOption3().setEnabled(isFinish);
 		}
 		public void readParameter() throws Exception {
 			String url = getUrlText().getText().trim();
 			int index1 = getOption1().getSelectionIndex();
 			int index2 = getOption2().getSelectionIndex();
-			int index3 = getOption3().getSelectionIndex();
-			Config.goodsInfo = new GoodsInfo(url,index1,index2,index3);
+			Config.goodsInfo = new GoodsInfo(url,index1,index2);
 			String buyTime = getBuyTimeText().getText().trim();
 			String duration = getDurationText().getText().trim();
 			Config.customRule = new CustomRule(buyTime,duration);

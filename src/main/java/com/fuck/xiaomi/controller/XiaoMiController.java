@@ -39,10 +39,10 @@ public class XiaoMiController {
 		logger.info("param:{},{},{}",Config.user,Config.goodsInfo,Config.customRule);
 		
 		StatusManage.isLogin = false;
-		StatusManage.isBuyUrl = false;
+		Config.goodsInfo.getBuyUrls().clear();
+		
 		FileUtil.checkPath(FilePathManage.configPath);
 		FileUtil.writeToFile(JSON.toJSONString(Config.goodsInfo), FilePathManage.goodsInfoConfig);
-		xiaomiService.keeplogin();
 		xiaomiService.start();
 		
 		

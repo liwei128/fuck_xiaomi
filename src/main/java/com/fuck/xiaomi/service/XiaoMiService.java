@@ -2,6 +2,7 @@ package com.fuck.xiaomi.service;
 
 
 import java.util.List;
+import java.util.Random;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 
@@ -80,10 +81,10 @@ public class XiaoMiService {
 	 * 保持登录状态
 	 */
 	@Async
-	public void keeplogin() {
+	public void login() {
 		if(!islogin()){
 			StatusManage.isLogin = false;
-			login();
+			toLogin();
 			StatusManage.isLogin = true;
 		}else{
 			logger.info("用户:{} 已登录。",Config.user.getUserName());
@@ -92,7 +93,7 @@ public class XiaoMiService {
 	}
 	
 	@Retry2(success = "ok")
-	public String login() {
+	public String toLogin() {
 		long start = System.currentTimeMillis();
 		FileUtil.writeToFile(JSON.toJSONString(Config.user), FilePathManage.userConfig);
 		String result = httpService.execute(FilePathManage.loginJs);
@@ -113,37 +114,34 @@ public class XiaoMiService {
 	}
 	
 	/**
-	 * 每秒开一个线程，共开8个线程,去获取购买url
+	 * 每3秒开一个线程,去获取购买url
 	 */
-	@Async(value = 8, interval = 1000)
+	@Timing(initialDelay = 0, period = 3, type = TimingType.FIXED_RATE, unit = TimeUnit.SECONDS)
 	public void getBuyUrl(){
+		if(!StatusManage.isLogin){
+			return;
+		}
 		buyUrl();
-	}
-	
-	@Retry2(success = "ok",interval = 500)
-	public String  buyUrl() {
-		if(StatusManage.isBuyUrl){
-			return "ok";
-		}
-		if(StatusManage.isLogin){
-			String result = httpService.execute(FilePathManage.buyGoodsJs);
-			if(result.startsWith("[")&&result.endsWith("]")&&result.length()>10){
-				List<String> buyUrl = JSON.parseArray(result, String.class);
-				Config.goodsInfo.setBuyUrls(buyUrl);
-				StatusManage.isBuyUrl = true;
-				logger.info("购买链接:{},开始抢购！",Config.goodsInfo.getBuyUrls());
-				submitOrder();
-				return "ok";
-			}
-		}
-		return "fail";
 		
 	}
-
 	@Async
+	public void buyUrl(){
+		long startTime = System.currentTimeMillis();
+		String result = httpService.execute(FilePathManage.buyGoodsJs);
+		if(result.startsWith("http")){
+			Config.goodsInfo.getBuyUrls().add(result);
+			logger.info("已获取购买链接:{}ms,{}",System.currentTimeMillis()-startTime,result);
+			submitOrder();
+		}
+	}
+	
 	public void submitOrder() {
+		long start = System.currentTimeMillis();
 		String result = httpService.execute(FilePathManage.submitOrderJs);
-		logger.info("购物车:{}",result);
+		logger.info("购物车:{}ms,{}",System.currentTimeMillis()-start,result);
+		if(result.equals("已提交订单")){
+			stop("恭喜！抢购成功");
+		}
 	}
 
 	/**
@@ -151,31 +149,40 @@ public class XiaoMiService {
 	 * @param buyUrl
 	 * @param cookies
 	 */
-	@Timing(initialDelay = 0, period = 400, type = TimingType.FIXED_RATE, unit = TimeUnit.MILLISECONDS)
+	@Timing(initialDelay = 0, period = 300, type = TimingType.FIXED_RATE, unit = TimeUnit.MILLISECONDS)
 	public void buyGoodsTask() {
-		if(StatusManage.isLogin&&StatusManage.isBuyUrl){
+		if(StatusManage.isLogin&&Config.goodsInfo.getBuyUrls().size()>0){
 			buy(Config.goodsInfo.getBuyUrls(),Config.user.getCookies());
 		}
 	}
 	
 	@Async(30)
 	public void buy(List<String> buyUrl, List<Cookie> cookies){
-		for(String url:buyUrl){
-			long start = System.currentTimeMillis();
-			String re = httpService.getByCookies(url, cookies);
-			if(re!=null){
-				if(isBuySuccess(re)){
-					submitOrder();
-					stop("恭喜！抢购成功,赶紧去购物车付款吧!");
-					return;
-				}
-				logger.info("排队中({}),看人品咯！{}ms,{}",Config.submitCount.addAndGet(1),System.currentTimeMillis()-start,url);
-			}
-			
+		String url = selectOneUrl(buyUrl);
+		long start = System.currentTimeMillis();
+		String re = httpService.getByCookies(url, cookies);
+		if(isBuySuccess(re)){
+			logger.info("已提交到购物车！{}ms",System.currentTimeMillis()-start);
+			submitOrder();
+			return;
 		}
+			
 	}
 	
+	public String selectOneUrl(List<String> buyUrl) {
+		Random random = new Random();
+		int index = 0;
+		if(buyUrl.size()<5){
+			index = random.nextInt(buyUrl.size());
+		}else{
+			index = random.nextInt(5)+buyUrl.size()-5;
+		}
+		return buyUrl.get(index);
+	}
+
 	public void start(){
+		//登录
+		login();
 		//购买
 		buy = MyThreadPool.schedule(()->{
 			logger.info("获取购买链接中。。。");
@@ -189,7 +196,7 @@ public class XiaoMiService {
 		}, Config.customRule.getEndTime(), TimeUnit.MILLISECONDS);
 
 	}
-	@Stop(methods = { "buyGoodsTask"})
+	@Stop(methods = { "buyGoodsTask","getBuyUrl"})
 	public void stop(String msg) {
 		
 		StatusManage.endMsg = msg;
@@ -202,8 +209,6 @@ public class XiaoMiService {
 		if(stop!=null){
 			stop.cancel(false);//停止 截止时间的定时器
 		}
-		
-		StatusManage.isBuyUrl = true;//停止buyUrl
 
 		StatusManage.isEnd = true;
 	}
@@ -211,6 +216,9 @@ public class XiaoMiService {
 	//判断是否抢购成功 
 		//jQuery111302798960934517918_1528978041106({"code":1,"message":"2173300005_0_buy","msg":"2173300005_0_buy"});
 		public boolean isBuySuccess(String re) {
+			if(re==null){
+				return false;
+			}
 			try{
 				String substring = re.substring(re.indexOf("(")+1,re.lastIndexOf(")"));
 				JSONObject parseObject = JSON.parseObject(substring);

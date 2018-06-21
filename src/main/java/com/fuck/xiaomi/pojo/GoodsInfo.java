@@ -20,7 +20,7 @@ public class GoodsInfo {
 	private List<Option> params_index;
 	
 	//抢购链接
-	private List<String> buyUrls;
+	private List<String> buyUrls = Lists.newArrayList();
 	
 	
 

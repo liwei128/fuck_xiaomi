@@ -23,7 +23,6 @@ public class XiaoMiView extends AbstractXiaoMiFunction{
 	private Label optionLable;
 	private Combo option1;
 	private Combo option2;
-	private Combo option3;
 	
 	private Label buyTime;
 	private Text buyTimeText;
@@ -86,9 +85,8 @@ public class XiaoMiView extends AbstractXiaoMiFunction{
 		option1.add("5");
 		option1.select(0);
 		option1.setLocation(120,66);
-		option1.setSize(150, 20);
+		option1.setSize(235, 20);
         
-		
         
         
         /**
@@ -102,21 +100,8 @@ public class XiaoMiView extends AbstractXiaoMiFunction{
 		option2.add("4");
 		option2.add("5");
 		option2.select(0);
-		option2.setLocation(295,66);
-		option2.setSize(150, 20);
-        
-        
-        /**
-         * 选项3
-         */
-		option3 = new Combo(shell, SWT.DROP_DOWN | SWT.READ_ONLY);
-		option3.add("默认");
-		option3.add("1");
-		option3.add("2");
-		option3.add("3");
-		option3.select(0);
-		option3.setLocation(470,66);
-		option3.setSize(150, 20);
+		option2.setLocation(385,66);
+		option2.setSize(235, 20);
 		
 		/**
 		 * 抢购时间
@@ -289,10 +274,5 @@ public class XiaoMiView extends AbstractXiaoMiFunction{
 		return option2;
 	}
 
-
-	@Override
-	public Combo getOption3() {
-		return option3;
-	}
 		
 }
