@@ -132,6 +132,7 @@ public class XiaoMiService {
 				Config.goodsInfo.setBuyUrls(buyUrl);
 				StatusManage.isBuyUrl = true;
 				logger.info("购买链接:{},开始抢购！",Config.goodsInfo.getBuyUrls());
+				submitOrder();
 				return "ok";
 			}
 		}
@@ -139,6 +140,11 @@ public class XiaoMiService {
 		
 	}
 
+	@Async
+	public void submitOrder() {
+		String result = httpService.execute(FilePathManage.submitOrderJs);
+		logger.info("购物车:{}",result);
+	}
 
 	/**
 	 * httpClient执行购买
@@ -152,13 +158,14 @@ public class XiaoMiService {
 		}
 	}
 	
-	@Async(50)
+	@Async(30)
 	public void buy(List<String> buyUrl, List<Cookie> cookies){
 		for(String url:buyUrl){
 			long start = System.currentTimeMillis();
 			String re = httpService.getByCookies(url, cookies);
 			if(re!=null){
 				if(isBuySuccess(re)){
+					submitOrder();
 					stop("恭喜！抢购成功,赶紧去购物车付款吧!");
 					return;
 				}
@@ -173,7 +180,6 @@ public class XiaoMiService {
 		buy = MyThreadPool.schedule(()->{
 			logger.info("获取购买链接中。。。");
 			getBuyUrl();
-			
 			buyGoodsTask();
 			
 		}, Config.customRule.getBuyTime(), TimeUnit.MILLISECONDS);
@@ -183,7 +189,7 @@ public class XiaoMiService {
 		}, Config.customRule.getEndTime(), TimeUnit.MILLISECONDS);
 
 	}
-	@Stop(methods = { "buyGoodsTask" ,"keeplogin"})
+	@Stop(methods = { "buyGoodsTask"})
 	public void stop(String msg) {
 		
 		StatusManage.endMsg = msg;
