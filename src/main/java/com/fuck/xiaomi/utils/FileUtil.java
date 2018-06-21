@@ -127,5 +127,12 @@ public class FileUtil {
 	        }
 		
 	}
+	//目录校验
+	public static void checkPath(String path){
+		File file = new File(path);
+		if(!file.exists()){
+			file.mkdirs();
+		}
+	}
 
 }

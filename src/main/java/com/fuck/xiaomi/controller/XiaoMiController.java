@@ -40,6 +40,7 @@ public class XiaoMiController {
 		
 		StatusManage.isLogin = false;
 		StatusManage.isBuyUrl = false;
+		FileUtil.checkPath(FilePathManage.configPath);
 		FileUtil.writeToFile(JSON.toJSONString(Config.goodsInfo), FilePathManage.goodsInfoConfig);
 		xiaomiService.keeplogin();
 		xiaomiService.start();
