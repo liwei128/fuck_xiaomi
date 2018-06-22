@@ -130,22 +130,20 @@ public class XiaoMiService {
 		String result = httpService.execute(FilePathManage.buyGoodsJs);
 		if(result.startsWith("http")){
 			Config.goodsInfo.getBuyUrls().add(result);
-			logger.info("已获取购买链接:{}ms,{}",System.currentTimeMillis()-startTime,result);
-			submitOrder();
+			logger.info("已获取购买链接({}):{}ms",Config.goodsInfo.getBuyUrls().size(),System.currentTimeMillis()-startTime);
 		}
 	}
-	
+	@Async
 	public void submitOrder() {
 		long start = System.currentTimeMillis();
 		String result = httpService.execute(FilePathManage.submitOrderJs);
-		logger.info("购物车:{}ms,{}",System.currentTimeMillis()-start,result);
-		if(result.equals("已提交订单")){
-			stop("恭喜！抢购成功");
+		if(result.length()>0){
+			logger.info("{},{}ms",result,System.currentTimeMillis()-start);
 		}
 	}
 
 	/**
-	 * httpClient执行购买
+	 * httpClient加入购物车
 	 * @param buyUrl
 	 * @param cookies
 	 */
@@ -162,8 +160,9 @@ public class XiaoMiService {
 		long start = System.currentTimeMillis();
 		String re = httpService.getByCookies(url, cookies);
 		if(isBuySuccess(re)){
-			logger.info("已提交到购物车！{}ms",System.currentTimeMillis()-start);
+			logger.info("已加入购物车,{}ms",System.currentTimeMillis()-start);
 			submitOrder();
+			stop("恭喜！抢购成功，赶紧去购物车付款吧！");
 			return;
 		}
 			

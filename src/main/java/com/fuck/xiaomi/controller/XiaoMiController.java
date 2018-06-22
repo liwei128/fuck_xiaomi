@@ -25,8 +25,6 @@ import com.fuck.xiaomi.utils.FileUtil;
 @Controller
 public class XiaoMiController {
 	
-	private static  Logger logger = LoggerFactory.getLogger(XiaoMiController.class);
-	
 	@Resource
 	private XiaoMiService xiaomiService;
 	
@@ -36,7 +34,6 @@ public class XiaoMiController {
 	
 	
 	public void start(){
-		logger.info("param:{},{},{}",Config.user,Config.goodsInfo,Config.customRule);
 		
 		StatusManage.isLogin = false;
 		Config.goodsInfo.getBuyUrls().clear();

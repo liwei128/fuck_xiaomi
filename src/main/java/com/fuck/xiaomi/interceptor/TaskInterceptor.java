@@ -168,8 +168,13 @@ public class TaskInterceptor implements MethodInterceptor{
 		for(String methodName : methods){
 			ScheduledFuture<?> futureByName = futures.get(methodName);
 			if(futureByName!=null){
-				futureByName.cancel(false);
-				logger.info("定时任务:{} 停止.",methodName);
+				synchronized (futureByName) {
+					if(!futureByName.isCancelled()){
+						logger.info("定时任务:{} 停止.",methodName);
+					};
+					futureByName.cancel(false);
+				}
+				
 			}
 		}
 	}
