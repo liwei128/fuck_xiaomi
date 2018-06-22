@@ -68,6 +68,9 @@ public class XiaoMiService {
 			if("userId".equals(cookie.getName())){
 				islogin = true;
 			}
+			if("JSESSIONID".equals(cookie.getName())){
+				return false;
+			}
 		}
 		if(islogin){
 			Config.user.setCookies(oldUser.getCookies());
@@ -97,19 +100,23 @@ public class XiaoMiService {
 		long start = System.currentTimeMillis();
 		FileUtil.writeToFile(JSON.toJSONString(Config.user), FilePathManage.userConfig);
 		String result = httpService.execute(FilePathManage.loginJs);
-		if(result.length()==0||result.equals("cache")){
-			logger.error("用户:{} 登录失败,时间:{}ms,正准备重试。。。建议清空缓存。",Config.user.getUserName(),System.currentTimeMillis()-start);
+		if(result.length()==0){
+			logger.info("用户:{} 登录失败，正在重试。时间:{}ms",Config.user.getUserName(),System.currentTimeMillis()-start);
 			return "fail";
-		}else if(result.equals("pwd")){
-			stop("用户名或密码错误！");
-			return "ok";
-		}else{
-			List<Cookie> cookies = JSON.parseArray(result, Cookie.class);
-			Config.user.setCookies(cookies);
-			FileUtil.writeToFile(JSON.toJSONString(Config.user), FilePathManage.userConfig);
-			logger.info("用户:{} 登录成功,时间:{}ms",Config.user.getUserName(),System.currentTimeMillis()-start);
+		}
+		if(result.equals("confine")){
+			stop("用户被限制登录！");
 			return "ok";
 		}
+		if(result.equals("pwd")){
+			stop("用户名或密码错误！");
+			return "ok";
+		}
+		List<Cookie> cookies = JSON.parseArray(result, Cookie.class);
+		Config.user.setCookies(cookies);
+		FileUtil.writeToFile(JSON.toJSONString(Config.user), FilePathManage.userConfig);
+		logger.info("用户:{} 登录成功,时间:{}ms",Config.user.getUserName(),System.currentTimeMillis()-start);
+		return "ok";
 		
 	}
 	
