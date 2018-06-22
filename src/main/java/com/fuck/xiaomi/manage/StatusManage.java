@@ -1,4 +1,7 @@
 package com.fuck.xiaomi.manage;
+
+import java.util.concurrent.atomic.AtomicInteger;
+
 /**
  * 爬虫状态标志
  * @author wei.li
@@ -16,5 +19,10 @@ public class StatusManage {
 	//结束消息
 	public static volatile String endMsg = "";
 	
+	//页面解析次数
+	public static AtomicInteger parseCount = new AtomicInteger(0);
+	
+	//页面解析是否成功
+	public static volatile boolean isParseSuccess = false;
 	
 }

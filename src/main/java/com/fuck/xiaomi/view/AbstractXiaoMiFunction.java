@@ -2,6 +2,7 @@ package com.fuck.xiaomi.view;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import org.eclipse.swt.SWT;
@@ -12,7 +13,7 @@ import org.eclipse.swt.events.ShellEvent;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Combo;
 import org.eclipse.swt.widgets.Display;
-
+import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.MessageBox;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Text;
@@ -34,15 +35,19 @@ public abstract class AbstractXiaoMiFunction {
 		//小米主服务
 		private static  XiaoMiController xiaoMiController = ServiceFactory.getService(XiaoMiController.class);
 		
+		public static AtomicInteger parseCount = new AtomicInteger(0);
 		/**
 		 * 窗体控件
 		 */
 		public abstract Display getDisplay();
 		public abstract Shell getShell();
+		public abstract Label getMsg();
 		public abstract Button getHideButton();
 		public abstract Text getLogText();
 		public abstract Button getStartButton();
+		public abstract Button getPauseButton();
 		public abstract Button getQuitButton();
+		public abstract Button getParseButton();
 		
 		public abstract Text getUrlText();
 		public abstract Text getBuyTimeText();
@@ -117,10 +122,36 @@ public abstract class AbstractXiaoMiFunction {
 				}
 			};
 		}
+		//停止按钮
+		public SelectionAdapter getPauseFunction(){
+			return new SelectionAdapter() {
+				@Override
+				public void widgetSelected(SelectionEvent e) {
+					xiaoMiController.stop("停止");
+				}
+			};
+		}
 		
+		//解析url
+		public SelectionAdapter getParseFunction(){
+			return new SelectionAdapter() {
+				@Override
+				public void widgetSelected(SelectionEvent e) {
+					String url = getUrlText().getText().trim();
+					if(url.length()==0){
+						return;
+					}
+					modifyStatus(false);
+					getMsg().setVisible(true);
+					xiaoMiController.parseUrl(url);
+				}
+			};
+		}
 		//修改状态后控件的变化效果
 		private void modifyStatus(boolean isFinish) {
 			getStartButton().setVisible(isFinish);
+			getPauseButton().setVisible(!isFinish);
+			getParseButton().setVisible(isFinish);
 			getUrlText().setEditable(isFinish);
 			getBuyTimeText().setEditable(isFinish);
 			getDurationText().setEditable(isFinish);
@@ -131,7 +162,11 @@ public abstract class AbstractXiaoMiFunction {
 			getOption2().setEnabled(isFinish);
 		}
 		public void readParameter() throws Exception {
+			
 			String url = getUrlText().getText().trim();
+			if(Config.goodsConfig==null||!url.equals(Config.goodsConfig.getUrl())){
+				throw new Exception("请先解析url");
+			}
 			int index1 = getOption1().getSelectionIndex();
 			int index2 = getOption2().getSelectionIndex();
 			Config.goodsInfo = new GoodsInfo(url,index1,index2);
@@ -142,7 +177,7 @@ public abstract class AbstractXiaoMiFunction {
 			String user = getUserText().getText().trim();
 			String password = getPasswordText().getText().trim();
 			Config.user = new User(user,password);
-			Config.submitCount = new AtomicInteger(0);
+			
 		}
 		
 		//初始化视图
@@ -195,7 +230,8 @@ public abstract class AbstractXiaoMiFunction {
 				loadLog();
 				//任务完成
 				finishMsg();
-				
+				//解析完成
+				parseFinish();
 				if (!getDisplay().readAndDispatch()) {
 					try {
 						Thread.sleep(150);
@@ -210,6 +246,34 @@ public abstract class AbstractXiaoMiFunction {
 		
 		
 		
+		public  void parseFinish() {
+			if(parseCount.intValue()<StatusManage.parseCount.intValue()){
+				if(StatusManage.isParseSuccess){
+					getShell().setText(Config.goodsConfig.getName());
+					List<String> version = Config.goodsConfig.getVersion();
+					getOption1().removeAll();
+					getOption1().add("默认");
+					for(String s:version){
+						getOption1().add(s);
+					}
+					getOption1().select(0);
+					
+					List<String> color = Config.goodsConfig.getColor();
+					getOption2().removeAll();
+					getOption2().add("默认");
+					for(String s:color){
+						getOption2().add(s);
+					}
+					getOption2().select(0);
+				}else{
+					sendErrMsg(StatusManage.endMsg);
+				}
+				modifyStatus(true);
+				getMsg().setVisible(false);
+				parseCount.incrementAndGet();
+			}
+			
+		}
 		//错误弹框
 		public void sendErrMsg(String msg) {
 			MessageBox errorBox = new MessageBox(getShell(), SWT.ICON_ERROR);

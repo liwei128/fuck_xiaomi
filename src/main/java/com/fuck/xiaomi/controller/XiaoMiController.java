@@ -50,4 +50,16 @@ public class XiaoMiController {
 	public String loadLog() {
 		return LogStorage.getLog();
 	}
+
+	public void stop(String msg) {
+		xiaomiService.stop(msg);
+		
+	}
+	/**
+	 * 解析url
+	 * @param url
+	 */
+	public void parseUrl(String url) {
+		xiaomiService.parseUrl(url);
+	}
 }

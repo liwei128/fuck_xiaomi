@@ -23,6 +23,7 @@ import com.fuck.xiaomi.manage.MyThreadPool;
 import com.fuck.xiaomi.manage.StatusManage;
 import com.fuck.xiaomi.manage.Config;
 import com.fuck.xiaomi.pojo.Cookie;
+import com.fuck.xiaomi.pojo.GoodsConfig;
 import com.fuck.xiaomi.pojo.User;
 import com.fuck.xiaomi.utils.FileUtil;
 
@@ -128,13 +129,13 @@ public class XiaoMiService {
 		if(!StatusManage.isLogin){
 			return;
 		}
-		buyUrl();
+		getGoodsLink();
 		
 	}
 	@Async
-	public void buyUrl(){
+	public void getGoodsLink(){
 		long startTime = System.currentTimeMillis();
-		String result = httpService.execute(FilePathManage.buyGoodsJs);
+		String result = httpService.execute(FilePathManage.getGoodsLinkJs);
 		if(result.startsWith("http")){
 			Config.goodsInfo.getBuyUrls().add(result);
 			logger.info("已获取购买链接({}):{}ms",Config.goodsInfo.getBuyUrls().size(),System.currentTimeMillis()-startTime);
@@ -220,20 +221,47 @@ public class XiaoMiService {
 	}
 	
 	//判断是否抢购成功 
-		//jQuery111302798960934517918_1528978041106({"code":1,"message":"2173300005_0_buy","msg":"2173300005_0_buy"});
-		public boolean isBuySuccess(String re) {
-			if(re==null){
-				return false;
-			}
-			try{
-				String substring = re.substring(re.indexOf("(")+1,re.lastIndexOf(")"));
-				JSONObject parseObject = JSON.parseObject(substring);
-				Integer code = parseObject.getInteger("code");
-				return code==1;
-			}catch(Exception e){
-				logger.error("parseBuyResult err:{}",re);
-				return false;
-			}
+	//jQuery111302798960934517918_1528978041106({"code":1,"message":"2173300005_0_buy","msg":"2173300005_0_buy"});
+	public boolean isBuySuccess(String re) {
+		if(re==null){
+			return false;
 		}
+		try{
+			String substring = re.substring(re.indexOf("(")+1,re.lastIndexOf(")"));
+			JSONObject parseObject = JSON.parseObject(substring);
+			Integer code = parseObject.getInteger("code");
+			return code==1;
+		}catch(Exception e){
+			logger.error("parseBuyResult err:{}",re);
+			return false;
+		}
+	}
+	@Async
+	public void parseUrl(String url) {
+		try{
+			if(!url.startsWith("https://item.mi.com/product/")){
+				StatusManage.endMsg = "购买链接错误，请重新填写";
+				StatusManage.isParseSuccess = false;
+				return;
+			}
+			String ret = httpService.execute(FilePathManage.queryGoodsInfoJs, url);
+			GoodsConfig goodsConfig = JSON.parseObject(ret, GoodsConfig.class);
+			if(goodsConfig.getColor().size()==0){
+				StatusManage.endMsg = "链接解析失败";
+				StatusManage.isParseSuccess = false;
+				return;
+			}
+			
+			Config.goodsConfig = goodsConfig;
+			StatusManage.isParseSuccess = true;
+		}catch(Exception e){
+			StatusManage.endMsg = "链接解析失败";
+			StatusManage.isParseSuccess = false;
+		}finally {
+			StatusManage.parseCount.incrementAndGet();
+		}
+		
+		
+	}
 	
 }

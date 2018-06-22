@@ -17,6 +17,8 @@ public class XiaoMiView extends AbstractXiaoMiFunction{
 	private Display display;
 	private Shell shell;
 	
+	private Label msg;
+	
 	private Label url;
 	private Text urlText;
 	
@@ -38,7 +40,9 @@ public class XiaoMiView extends AbstractXiaoMiFunction{
 
 	private Button hideButton;
 	private Button startButton;
+	private Button pauseButton;
 	private Button quitButton;
+	private Button parseButton;
 	
 	private Text logText;
 	
@@ -55,6 +59,12 @@ public class XiaoMiView extends AbstractXiaoMiFunction{
 		shell.setText("fuckXiaoMi");
 		shell.setSize(650, 375);
 		
+		msg = new Label(shell, SWT.PUSH);
+		msg.setText("解析中，请稍后。。。");
+		msg.setLocation(500, 4);
+		msg.setSize(120, 20);
+		msg.setVisible(false);
+		
 		
 		/**
 		 * 购买链接
@@ -63,9 +73,17 @@ public class XiaoMiView extends AbstractXiaoMiFunction{
 		url.setText("购买链接:");
 		url.setLocation(20, 30);
 		url.setSize(100, 20);
+		
+		parseButton = new Button(shell, SWT.PUSH);
+		parseButton.setLocation(560, 29);
+		parseButton.setSize(60, 22);
+		parseButton.setText("解析-->");
+		
 		urlText = new Text(shell, SWT.BORDER);
 		urlText.setLocation(120, 30);
 		urlText.setSize(500, 20);
+		
+		
 		
 		
 		optionLable = new Label(shell, SWT.PUSH);
@@ -78,11 +96,6 @@ public class XiaoMiView extends AbstractXiaoMiFunction{
          */
 		option1 = new Combo(shell, SWT.DROP_DOWN | SWT.READ_ONLY);
 		option1.add("默认");
-		option1.add("1");
-		option1.add("2");
-		option1.add("3");
-		option1.add("4");
-		option1.add("5");
 		option1.select(0);
 		option1.setLocation(120,66);
 		option1.setSize(235, 20);
@@ -94,11 +107,6 @@ public class XiaoMiView extends AbstractXiaoMiFunction{
          */
 		option2 = new Combo(shell, SWT.DROP_DOWN | SWT.READ_ONLY);
 		option2.add("默认");
-		option2.add("1");
-		option2.add("2");
-		option2.add("3");
-		option2.add("4");
-		option2.add("5");
 		option2.select(0);
 		option2.setLocation(385,66);
 		option2.setSize(235, 20);
@@ -168,6 +176,12 @@ public class XiaoMiView extends AbstractXiaoMiFunction{
 		startButton.setSize(80, 30);
 		startButton.setText("开始");
 		
+		pauseButton = new Button(shell, SWT.PUSH);
+		pauseButton.setLocation(430, 300);
+		pauseButton.setSize(80, 30);
+		pauseButton.setText("暂停");
+		pauseButton.setVisible(false);
+		
 		quitButton = new Button(shell, SWT.PUSH);
 		quitButton.setLocation(540, 300);
 		quitButton.setSize(80, 30);
@@ -187,8 +201,10 @@ public class XiaoMiView extends AbstractXiaoMiFunction{
 		 * 按钮绑定事件
 		 */
 		startButton.addSelectionListener(getStartFunction());
+		pauseButton.addSelectionListener(getPauseFunction());
 		hideButton.addSelectionListener(getHideFunction());
 		quitButton.addSelectionListener(getQuitFunction());
+		parseButton.addSelectionListener(getParseFunction());
 		shell.addShellListener(getCloseListener());
 		
 		/**
@@ -273,6 +289,19 @@ public class XiaoMiView extends AbstractXiaoMiFunction{
 	public Combo getOption2() {
 		return option2;
 	}
-
+	
+	@Override
+	public Button getPauseButton() {
+		return pauseButton;
+	}
+	
+	@Override
+	public Button getParseButton() {
+		return parseButton;
+	}
+	@Override
+	public Label getMsg(){
+		return msg;
+	}
 		
 }

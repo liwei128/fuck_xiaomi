@@ -14,7 +14,9 @@ public class FilePathManage {
 	
 	public static String loginJs = binPath + File.separator + "login.js";
 	
-	public static String buyGoodsJs = binPath + File.separator + "buyGoods.js";
+	public static String getGoodsLinkJs = binPath + File.separator + "getGoodsLink.js";
+	
+	public static String queryGoodsInfoJs = binPath + File.separator + "queryGoodsInfo.js";
 	
 	public static String exe = binPath + File.separator  + "phantomjs.exe"; 
 	

@@ -1,8 +1,7 @@
 package com.fuck.xiaomi.manage;
 
-import java.util.concurrent.atomic.AtomicInteger;
-
 import com.fuck.xiaomi.pojo.CustomRule;
+import com.fuck.xiaomi.pojo.GoodsConfig;
 import com.fuck.xiaomi.pojo.GoodsInfo;
 import com.fuck.xiaomi.pojo.User;
 
@@ -14,6 +13,6 @@ public class Config {
 	
 	public static CustomRule customRule ;
 	
-	public static AtomicInteger submitCount = new AtomicInteger(0);
+	public static GoodsConfig goodsConfig;
 
 }

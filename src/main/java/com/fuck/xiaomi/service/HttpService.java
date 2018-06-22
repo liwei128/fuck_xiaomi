@@ -45,9 +45,13 @@ public class HttpService {
 	 * @return
 	 */
 	public String execute(String jsPath){
+		return execute(jsPath, "");
+	}
+	
+	public String execute(String jsPath,String url){
 		Process p=null;
 		try {
-			p= Runtime.getRuntime().exec(FilePathManage.exe+" " +jsPath);
+			p= Runtime.getRuntime().exec(FilePathManage.exe+" " +jsPath+" "+url);
 			InputStream is = p.getInputStream(); 
 			BufferedReader br = new BufferedReader(new InputStreamReader(is,"UTF-8")); 
 			StringBuffer sbf = new StringBuffer();  
