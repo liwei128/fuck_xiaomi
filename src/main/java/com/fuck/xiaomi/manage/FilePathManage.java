@@ -22,7 +22,16 @@ public class FilePathManage {
 	
 	public static String userConfig = configPath + File.separator + "user.json";
 	
-	public static String goodsInfoConfig = configPath + File.separator + "goodsInfo.json";
+	public static String goodsInfoConfig= configPath + File.separator + "goodsInfo.json";
+	
+	public static String goodsInfoDb= binPath + File.separator + "goodsInfo.db";
 	
 	public static String submitOrderJs = binPath + File.separator + "submitOrder.js";
+	
+	public static String queryGoodsListJs = binPath + File.separator + "queryGoodsList.js";
+	
+	public static String queryBuyUrlJs = binPath + File.separator + "queryBuyUrl.js";
+	
+	
+	
 }

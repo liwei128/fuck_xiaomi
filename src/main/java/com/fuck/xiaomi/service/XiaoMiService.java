@@ -23,7 +23,6 @@ import com.fuck.xiaomi.manage.MyThreadPool;
 import com.fuck.xiaomi.manage.StatusManage;
 import com.fuck.xiaomi.manage.Config;
 import com.fuck.xiaomi.pojo.Cookie;
-import com.fuck.xiaomi.pojo.GoodsConfig;
 import com.fuck.xiaomi.pojo.User;
 import com.fuck.xiaomi.utils.FileUtil;
 
@@ -235,33 +234,6 @@ public class XiaoMiService {
 			logger.error("parseBuyResult err:{}",re);
 			return false;
 		}
-	}
-	@Async
-	public void parseUrl(String url) {
-		try{
-			if(!url.startsWith("https://item.mi.com/product/")){
-				StatusManage.endMsg = "购买链接错误，请重新填写";
-				StatusManage.isParseSuccess = false;
-				return;
-			}
-			String ret = httpService.execute(FilePathManage.queryGoodsInfoJs, url);
-			GoodsConfig goodsConfig = JSON.parseObject(ret, GoodsConfig.class);
-			if(goodsConfig.getColor().size()==0){
-				StatusManage.endMsg = "链接解析失败";
-				StatusManage.isParseSuccess = false;
-				return;
-			}
-			
-			Config.goodsConfig = goodsConfig;
-			StatusManage.isParseSuccess = true;
-		}catch(Exception e){
-			StatusManage.endMsg = "链接解析失败";
-			StatusManage.isParseSuccess = false;
-		}finally {
-			StatusManage.parseCount.incrementAndGet();
-		}
-		
-		
 	}
 	
 }

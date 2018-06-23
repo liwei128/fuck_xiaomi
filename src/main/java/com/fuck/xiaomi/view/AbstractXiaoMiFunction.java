@@ -13,7 +13,6 @@ import org.eclipse.swt.events.ShellEvent;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Combo;
 import org.eclipse.swt.widgets.Display;
-import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.MessageBox;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Text;
@@ -41,7 +40,6 @@ public abstract class AbstractXiaoMiFunction {
 		 */
 		public abstract Display getDisplay();
 		public abstract Shell getShell();
-		public abstract Label getMsg();
 		public abstract Button getHideButton();
 		public abstract Text getLogText();
 		public abstract Button getStartButton();
@@ -49,7 +47,7 @@ public abstract class AbstractXiaoMiFunction {
 		public abstract Button getQuitButton();
 		public abstract Button getParseButton();
 		
-		public abstract Text getUrlText();
+		public abstract Text getNameText();
 		public abstract Text getBuyTimeText();
 		public abstract Text getDurationText();
 		public abstract Text getUserText();
@@ -132,18 +130,37 @@ public abstract class AbstractXiaoMiFunction {
 			};
 		}
 		
-		//解析url
+		//搜索商品名
 		public SelectionAdapter getParseFunction(){
 			return new SelectionAdapter() {
 				@Override
 				public void widgetSelected(SelectionEvent e) {
-					String url = getUrlText().getText().trim();
-					if(url.length()==0){
+					String name = getNameText().getText().trim();
+					if(name.length()==0){
 						return;
 					}
-					modifyStatus(false);
-					getMsg().setVisible(true);
-					xiaoMiController.parseUrl(url);
+					xiaoMiController.searchGoods(name);
+					if(Config.goodsConfig==null){
+						getNameText().setText(name+"(该商品不存在)");
+						return;
+					}
+					getShell().setText(Config.goodsConfig.getName());
+					getNameText().setText(Config.goodsConfig.getName());
+					List<String> version = Config.goodsConfig.getVersion();
+					getOption1().removeAll();
+					getOption1().add("默认");
+					for(String s:version){
+						getOption1().add(s);
+					}
+					getOption1().select(0);
+					
+					List<String> color = Config.goodsConfig.getColor();
+					getOption2().removeAll();
+					getOption2().add("默认");
+					for(String s:color){
+						getOption2().add(s);
+					}
+					getOption2().select(0);
 				}
 			};
 		}
@@ -152,7 +169,7 @@ public abstract class AbstractXiaoMiFunction {
 			getStartButton().setVisible(isFinish);
 			getPauseButton().setVisible(!isFinish);
 			getParseButton().setVisible(isFinish);
-			getUrlText().setEditable(isFinish);
+			getNameText().setEditable(isFinish);
 			getBuyTimeText().setEditable(isFinish);
 			getDurationText().setEditable(isFinish);
 			getUserText().setEditable(isFinish);
@@ -163,13 +180,13 @@ public abstract class AbstractXiaoMiFunction {
 		}
 		public void readParameter() throws Exception {
 			
-			String url = getUrlText().getText().trim();
-			if(Config.goodsConfig==null||!url.equals(Config.goodsConfig.getUrl())){
-				throw new Exception("请先解析url");
+			String name = getNameText().getText().trim();
+			if(Config.goodsConfig==null||!name.equals(Config.goodsConfig.getName())){
+				throw new Exception("请先搜索商品");
 			}
 			int index1 = getOption1().getSelectionIndex();
 			int index2 = getOption2().getSelectionIndex();
-			Config.goodsInfo = new GoodsInfo(url,index1,index2);
+			Config.goodsInfo = new GoodsInfo(Config.goodsConfig.getUrl(),index1,index2);
 			String buyTime = getBuyTimeText().getText().trim();
 			String duration = getDurationText().getText().trim();
 			Config.customRule = new CustomRule(buyTime,duration);
@@ -230,8 +247,6 @@ public abstract class AbstractXiaoMiFunction {
 				loadLog();
 				//任务完成
 				finishMsg();
-				//解析完成
-				parseFinish();
 				if (!getDisplay().readAndDispatch()) {
 					try {
 						Thread.sleep(150);
@@ -244,36 +259,6 @@ public abstract class AbstractXiaoMiFunction {
 			getDisplay().dispose();
 		}
 		
-		
-		
-		public  void parseFinish() {
-			if(parseCount.intValue()<StatusManage.parseCount.intValue()){
-				if(StatusManage.isParseSuccess){
-					getShell().setText(Config.goodsConfig.getName());
-					List<String> version = Config.goodsConfig.getVersion();
-					getOption1().removeAll();
-					getOption1().add("默认");
-					for(String s:version){
-						getOption1().add(s);
-					}
-					getOption1().select(0);
-					
-					List<String> color = Config.goodsConfig.getColor();
-					getOption2().removeAll();
-					getOption2().add("默认");
-					for(String s:color){
-						getOption2().add(s);
-					}
-					getOption2().select(0);
-				}else{
-					sendErrMsg(StatusManage.endMsg);
-				}
-				modifyStatus(true);
-				getMsg().setVisible(false);
-				parseCount.incrementAndGet();
-			}
-			
-		}
 		//错误弹框
 		public void sendErrMsg(String msg) {
 			MessageBox errorBox = new MessageBox(getShell(), SWT.ICON_ERROR);

@@ -1,13 +1,19 @@
 package com.fuck.xiaomi.controller;
 
 
+import java.util.Map;
+import java.util.Set;
+
 import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.TypeReference;
+import com.fuck.xiaomi.annotation.Async;
 import com.fuck.xiaomi.annotation.Controller;
 import com.fuck.xiaomi.annotation.Resource;
 import com.fuck.xiaomi.annotation.Singleton;
 import com.fuck.xiaomi.db.LogStorage;
 import com.fuck.xiaomi.manage.FilePathManage;
 import com.fuck.xiaomi.manage.StatusManage;
+import com.fuck.xiaomi.pojo.GoodsConfig;
 import com.fuck.xiaomi.manage.Config;
 import com.fuck.xiaomi.service.LogService;
 import com.fuck.xiaomi.service.XiaoMiService;
@@ -43,8 +49,12 @@ public class XiaoMiController {
 	}
 	
 	@Singleton
+	@Async
 	public void init() {
 		logService.readLogs();
+		String string = FileUtil.readFileToString(FilePathManage.goodsInfoDb);
+		Config.goodsConfigs = JSON.parseObject(string,new TypeReference<Map<String,GoodsConfig>>(){});
+		
 	}
 
 	public String loadLog() {
@@ -55,11 +65,19 @@ public class XiaoMiController {
 		xiaomiService.stop(msg);
 		
 	}
-	/**
-	 * 解析url
-	 * @param url
-	 */
-	public void parseUrl(String url) {
-		xiaomiService.parseUrl(url);
+
+	public void searchGoods(String name) {
+		GoodsConfig goodsConfig = Config.goodsConfigs.get(name);
+		if(goodsConfig==null){
+			Set<String> keySet = Config.goodsConfigs.keySet();
+			for(String key : keySet){
+				if(key.contains(name)||name.contains(key)){
+					goodsConfig = Config.goodsConfigs.get(key);
+					break;
+				}
+			}
+		}
+		Config.goodsConfig = goodsConfig;
+		
 	}
 }

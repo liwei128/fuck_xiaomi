@@ -1,5 +1,7 @@
 package com.fuck.xiaomi.manage;
 
+import java.util.Map;
+
 import com.fuck.xiaomi.pojo.CustomRule;
 import com.fuck.xiaomi.pojo.GoodsConfig;
 import com.fuck.xiaomi.pojo.GoodsInfo;
@@ -14,5 +16,7 @@ public class Config {
 	public static CustomRule customRule ;
 	
 	public static GoodsConfig goodsConfig;
+	
+	public static Map<String, GoodsConfig> goodsConfigs;
 
 }
