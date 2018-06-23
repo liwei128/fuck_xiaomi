@@ -62,7 +62,7 @@ public class FileUtil {
     	StringBuilder fileContent = new StringBuilder();
     	try {
     		InputStream fileInputStream = new FileInputStream(filePath);
-    		BufferedReader br = new BufferedReader(new InputStreamReader(fileInputStream));
+    		BufferedReader br = new BufferedReader(new InputStreamReader(fileInputStream,"UTF-8"));
     		String oneLineContent = null;
             while ( (oneLineContent = br.readLine()) != null) {
                 fileContent.append(oneLineContent);
@@ -91,7 +91,7 @@ public class FileUtil {
 				file.createNewFile();
 			}	
 			output = new FileOutputStream(file);
-			outputWriter = new OutputStreamWriter(output);
+			outputWriter = new OutputStreamWriter(output,"UTF-8");
 			writer = new BufferedWriter(outputWriter);
 			writer.write(data);
 			writer.flush();
