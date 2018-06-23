@@ -194,6 +194,7 @@ public class QueryGoodsService {
 		queryGoodsInfo();
 		endCheck();
 		logger.info("耗时:{}ms",System.currentTimeMillis()-startTime);
+		System.exit(0);
 	}
 
 }
