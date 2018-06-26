@@ -9,6 +9,7 @@ import com.fuck.xiaomi.annotation.Async;
 import com.fuck.xiaomi.annotation.Controller;
 import com.fuck.xiaomi.annotation.Resource;
 import com.fuck.xiaomi.annotation.Singleton;
+import com.fuck.xiaomi.db.GoodsInfoStorage;
 import com.fuck.xiaomi.db.LogStorage;
 import com.fuck.xiaomi.manage.FilePathManage;
 import com.fuck.xiaomi.manage.StatusManage;
@@ -53,7 +54,7 @@ public class XiaoMiController {
 		logService.readLogs();
 		String string = FileUtil.readFileToString(FilePathManage.goodsInfoDb);
 		if(string.length()!=0){
-			Config.goodsConfigs = JSON.parseObject(string,new TypeReference<Map<String,GoodsConfig>>(){});
+			GoodsInfoStorage.putAll(JSON.parseObject(string,new TypeReference<Map<String,GoodsConfig>>(){}));
 		}
 		
 		

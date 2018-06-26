@@ -4,7 +4,6 @@ package com.fuck.xiaomi.service;
 import java.net.URLEncoder;
 import java.util.List;
 import java.util.Random;
-import java.util.Set;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 
@@ -20,6 +19,7 @@ import com.fuck.xiaomi.annotation.Retry2;
 import com.fuck.xiaomi.annotation.Service;
 import com.fuck.xiaomi.annotation.Stop;
 import com.fuck.xiaomi.annotation.Timing;
+import com.fuck.xiaomi.db.GoodsInfoStorage;
 import com.fuck.xiaomi.enums.TimingType;
 import com.fuck.xiaomi.manage.FilePathManage;
 import com.fuck.xiaomi.manage.MyThreadPool;
@@ -320,21 +320,11 @@ public class XiaoMiService {
 			if(Config.goodsConfig==null){
 				return "(未找到该商品)";
 			}
-			Config.goodsConfigs.put(Config.goodsConfig.getName(), Config.goodsConfig);
-			FileUtil.writeToFile(JSON.toJSONString(Config.goodsConfigs), FilePathManage.goodsInfoDb);
+			GoodsInfoStorage.put(Config.goodsConfig.getName(), Config.goodsConfig);
+			FileUtil.writeToFile(JSON.toJSONString(GoodsInfoStorage.getAll()), FilePathManage.goodsInfoDb);
 			return null;
 		}
-		GoodsConfig goodsConfig = Config.goodsConfigs.get(name);
-		if(goodsConfig==null){
-			Set<String> keySet = Config.goodsConfigs.keySet();
-			for(String key : keySet){
-				if(key.contains(name)||name.contains(key)){
-					goodsConfig = Config.goodsConfigs.get(key);
-					break;
-				}
-			}
-		}
-		Config.goodsConfig = goodsConfig;
+		Config.goodsConfig = GoodsInfoStorage.get(name);
 		return Config.goodsConfig==null?"(商品暂未收录，试试商品地址)":null;
 	}
 	/**

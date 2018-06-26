@@ -6,7 +6,6 @@ package com.fuck.xiaomi.service;
  */
 
 import java.util.List;
-import java.util.Map;
 import java.util.concurrent.CountDownLatch;
 import java.util.stream.Collectors;
 
@@ -17,11 +16,11 @@ import com.alibaba.fastjson.JSON;
 import com.fuck.xiaomi.annotation.Async;
 import com.fuck.xiaomi.annotation.Resource;
 import com.fuck.xiaomi.annotation.Service;
+import com.fuck.xiaomi.db.GoodsInfoStorage;
 import com.fuck.xiaomi.manage.FilePathManage;
 import com.fuck.xiaomi.pojo.GoodsConfig;
 import com.fuck.xiaomi.utils.FileUtil;
 import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
 
 @Service
 public class QueryGoodsService {
@@ -36,8 +35,6 @@ public class QueryGoodsService {
 	private List<String> goodsHomeUrl = Lists.newArrayList();
 	
 	private List<String> buyPageUrls = Lists.newArrayList();
-	
-	private Map<String,GoodsConfig> goodsInfos = Maps.newHashMap();
 	
 	private CountDownLatch buyUrlCount;
 	
@@ -128,7 +125,7 @@ public class QueryGoodsService {
 	public void queryGoodsInfo(String url) {
 		GoodsConfig queryGoodsInfo = xiaoMiService.queryGoodsInfo(url);
 		if(queryGoodsInfo!=null){
-			goodsInfos.put(queryGoodsInfo.getName(), queryGoodsInfo);
+			GoodsInfoStorage.put(queryGoodsInfo.getName(), queryGoodsInfo);
 		}else{
 			logger.error("queryGoodsInfo fail:{}",url);
 		}
@@ -141,7 +138,7 @@ public class QueryGoodsService {
 		queryHomePage();
 		queryBuyPageUrl();
 		queryGoodsInfo();
-		FileUtil.writeToFile(JSON.toJSONString(goodsInfos), FilePathManage.goodsInfoDb);
+		FileUtil.writeToFile(JSON.toJSONString(GoodsInfoStorage.getAll()), FilePathManage.goodsInfoDb);
 		logger.info("耗时:{}ms",System.currentTimeMillis()-startTime);
 		System.exit(0);
 	}
