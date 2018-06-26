@@ -69,7 +69,7 @@ public class FileUtil {
             }
             br.close();
             fileInputStream.close();
-        } catch (IOException e) {
+        } catch (Exception e) {
             logger.error("读取文件内容错误",e);
         }
         return fileContent.toString();

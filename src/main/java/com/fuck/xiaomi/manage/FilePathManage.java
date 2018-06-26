@@ -12,11 +12,7 @@ public class FilePathManage {
 	
 	public static String configPath=System.getProperty("user.dir")+File.separator+"config";
 	
-	public static String loginJs = binPath + File.separator + "login.js";
 	
-	public static String getGoodsLinkJs = binPath + File.separator + "getGoodsLink.js";
-	
-	public static String queryGoodsInfoJs = binPath + File.separator + "queryGoodsInfo.js";
 	
 	public static String exe = binPath + File.separator  + "phantomjs.exe"; 
 	
@@ -26,11 +22,15 @@ public class FilePathManage {
 	
 	public static String goodsInfoDb= binPath + File.separator + "goodsInfo.db";
 	
+	
+	
+	public static String loginJs = binPath + File.separator + "login.js";
+	
+	public static String queryBuyCartLinkJs = binPath + File.separator + "queryBuyCartLink.js";
+	
 	public static String submitOrderJs = binPath + File.separator + "submitOrder.js";
 	
-	public static String queryGoodsListJs = binPath + File.separator + "queryGoodsList.js";
-	
-	public static String queryBuyUrlJs = binPath + File.separator + "queryBuyUrl.js";
+	public static String queryHomeGoodsJs = binPath + File.separator + "queryHomeGoods.js";
 	
 	
 	

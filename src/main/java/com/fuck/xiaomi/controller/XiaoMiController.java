@@ -2,7 +2,6 @@ package com.fuck.xiaomi.controller;
 
 
 import java.util.Map;
-import java.util.Set;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.TypeReference;
@@ -53,7 +52,10 @@ public class XiaoMiController {
 	public void init() {
 		logService.readLogs();
 		String string = FileUtil.readFileToString(FilePathManage.goodsInfoDb);
-		Config.goodsConfigs = JSON.parseObject(string,new TypeReference<Map<String,GoodsConfig>>(){});
+		if(string.length()!=0){
+			Config.goodsConfigs = JSON.parseObject(string,new TypeReference<Map<String,GoodsConfig>>(){});
+		}
+		
 		
 	}
 
@@ -66,18 +68,8 @@ public class XiaoMiController {
 		
 	}
 
-	public void searchGoods(String name) {
-		GoodsConfig goodsConfig = Config.goodsConfigs.get(name);
-		if(goodsConfig==null){
-			Set<String> keySet = Config.goodsConfigs.keySet();
-			for(String key : keySet){
-				if(key.contains(name)||name.contains(key)){
-					goodsConfig = Config.goodsConfigs.get(key);
-					break;
-				}
-			}
-		}
-		Config.goodsConfig = goodsConfig;
+	public String searchGoods(String name) {
+		return xiaomiService.searchGoods(name);
 		
 	}
 }

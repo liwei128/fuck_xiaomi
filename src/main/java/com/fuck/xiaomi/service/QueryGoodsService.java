@@ -30,14 +30,12 @@ public class QueryGoodsService {
 	
 	@Resource
 	private HttpService httpService;
+	@Resource
+	private XiaoMiService xiaoMiService;
 	
 	private List<String> goodsHomeUrl = Lists.newArrayList();
 	
-	private List<String> goodsBuyUrl = Lists.newArrayList();
-	
-	private List<String> goodsHomeUrlFail = Lists.newArrayList();
-	
-	private List<String> goodsBuyUrlFail = Lists.newArrayList();
+	private List<String> buyPageUrls = Lists.newArrayList();
 	
 	private Map<String,GoodsConfig> goodsInfos = Maps.newHashMap();
 	
@@ -50,7 +48,7 @@ public class QueryGoodsService {
 	public void queryHomePage() {
 		logger.info("主页商品获取开始");
 		try{
-			String ret = httpService.execute(FilePathManage.queryGoodsListJs);
+			String ret = httpService.execute(FilePathManage.queryHomeGoodsJs);
 			if(ret.length()==0){
 				logger.error("查询商品列表失败");
 				return;
@@ -73,7 +71,7 @@ public class QueryGoodsService {
 					goodsHomeUrl.add(u);
 				}
 				if(u.startsWith("https://item.mi.com/product/")){
-					goodsBuyUrl.add(u);
+					buyPageUrls.add(u);
 				}
 			});
 		}catch(Exception e){
@@ -85,35 +83,29 @@ public class QueryGoodsService {
 	 * 查询商品购买页面
 	 * @throws InterruptedException 
 	 */
-	public void queryBuyUrl() throws InterruptedException{
+	public void queryBuyPageUrl() throws InterruptedException{
 		buyUrlCount = new CountDownLatch(goodsHomeUrl.size());  
 		logger.info("商品购买页面获取开始");
 		for(int i =0;i<goodsHomeUrl.size();i++){
-			if(i%5==0&&i!=0){
-				Thread.sleep(5000);
+			if(i%10==0&&i!=0){
+				Thread.sleep(1000);
 			}
-			getBuyUrl(goodsHomeUrl.get(i));
+			queryBuyPageUrl(goodsHomeUrl.get(i));
 		}
 		buyUrlCount.await();
 		logger.info("商品购买页面获取完成");
 	}
 	@Async
-	public void getBuyUrl(String url) {
-		try{
-			String ret = httpService.execute(FilePathManage.queryBuyUrlJs, url);
-			if(ret.startsWith("//")){
-				ret = "https:"+ret;
-			}
-			if(ret.startsWith("https://item.mi.com/product/")){
-				goodsBuyUrl.add(ret);
-			}else{
-				goodsHomeUrlFail.add(url);
-			}
-		}catch(Exception e){
-			goodsHomeUrlFail.add(url);
-		}finally {
-			buyUrlCount.countDown();
+	public void queryBuyPageUrl(String url) {
+		String buyPageUrl = xiaoMiService.queryBuyPageUrl(url);
+		if(buyPageUrl==null){
+			logger.error("queryBuyPageUrl fail:{}",url);
+		}else{
+			buyPageUrls.add(buyPageUrl);
 		}
+		buyUrlCount.countDown();
+		
+		
 		
 	}
 	/**
@@ -121,78 +113,35 @@ public class QueryGoodsService {
 	 * @throws InterruptedException 
 	 */
 	public void queryGoodsInfo() throws InterruptedException{
-		goodsInfoCount = new CountDownLatch(goodsBuyUrl.size());
+		goodsInfoCount = new CountDownLatch(buyPageUrls.size());
 		logger.info("商品详情获取开始");
-		for(int i =0;i<goodsBuyUrl.size();i++){
-			if(i%5==0&&i!=0){
-				Thread.sleep(5000);
+		for(int i =0;i<buyPageUrls.size();i++){
+			if(i%10==0&&i!=0){
+				Thread.sleep(1000);
 			}
-			parseUrl(goodsBuyUrl.get(i));
-			
+			queryGoodsInfo(buyPageUrls.get(i));
 		}
 		goodsInfoCount.await();
 		logger.info("商品详情获取完成");
 	}
 	@Async
-	public void parseUrl(String url) {
-		String ret = "";
-		try{
-			ret = httpService.execute(FilePathManage.queryGoodsInfoJs, url);
-			GoodsConfig goodsConfig = JSON.parseObject(ret, GoodsConfig.class);
-			if(goodsConfig.getColor().size()==0){
-				goodsBuyUrlFail.add(url);
-				return;
-			}
-			goodsInfos.put(goodsConfig.getName(), goodsConfig);
-		}catch(Exception e){
-			goodsBuyUrlFail.add(url);
-		}finally {
-			goodsInfoCount.countDown();
+	public void queryGoodsInfo(String url) {
+		GoodsConfig queryGoodsInfo = xiaoMiService.queryGoodsInfo(url);
+		if(queryGoodsInfo!=null){
+			goodsInfos.put(queryGoodsInfo.getName(), queryGoodsInfo);
+		}else{
+			logger.error("queryGoodsInfo fail:{}",url);
 		}
+		goodsInfoCount.countDown();
 	}
 	
-	public void endCheck(){
-		logger.info("结束时,检查失败情况");
-		goodsHomeUrlFail.forEach(u->{
-			String ret = "";
-			try{
-				ret = httpService.execute(FilePathManage.queryBuyUrlJs, u);
-				if(ret.startsWith("//")){
-					ret = "https:"+ret;
-				}
-				if(ret.startsWith("https://item.mi.com/product/")){
-					goodsBuyUrlFail.add(ret);
-				}else{
-					logger.error("无法获取购买页面：{},{}",u,ret);
-				}
-			}catch(Exception e){
-				logger.error("无法获取购买页面：{},{}",u,ret,e);
-			}
-		});
-		goodsBuyUrlFail.forEach(u->{
-			String ret = "";
-			try{
-				ret = httpService.execute(FilePathManage.queryGoodsInfoJs, u);
-				GoodsConfig goodsConfig = JSON.parseObject(ret, GoodsConfig.class);
-				if(goodsConfig.getColor().size()==0){
-					logger.error("无法获商品详情：{},{}",u,ret);
-					return;
-				}
-				goodsInfos.put(goodsConfig.getName(), goodsConfig);
-			}catch(Exception e){
-				logger.error("无法获商品详情：{},{}",u,ret,e);
-			}
-		});
-		FileUtil.writeToFile(JSON.toJSONString(goodsInfos), FilePathManage.goodsInfoDb);
-		logger.info("任务完成，失败情况请手动处理");
-	}
 	
 	public void execute() throws InterruptedException {
 		long startTime = System.currentTimeMillis();
 		queryHomePage();
-		queryBuyUrl();
+		queryBuyPageUrl();
 		queryGoodsInfo();
-		endCheck();
+		FileUtil.writeToFile(JSON.toJSONString(goodsInfos), FilePathManage.goodsInfoDb);
 		logger.info("耗时:{}ms",System.currentTimeMillis()-startTime);
 		System.exit(0);
 	}

@@ -96,6 +96,25 @@ public class HttpService {
     	}
 	}
 	
+	public String getXiaomi(String url,String referer){
+		CloseableHttpClient httpClient = createCookiesHttpClient();
+    	CloseableHttpResponse response=null;
+		try{
+    		HttpGet httpGet = new HttpGet(url);
+    		httpGet.setHeader("Referer",referer);
+    		httpGet.setHeader("Connection", "keep-alive");
+       		httpGet.setHeader("User-Agent", "Mozilla/5.0 (Linux; Android 6.0; Nexus 5 Build/MRA58N) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/57.0.2987.133 Mobile Safari/537.36");
+            response = httpClient.execute(httpGet);
+            return toString(response);
+            
+		}catch(Exception e){
+			logger.info("链接:"+url+"异常");
+			return null;
+    	}finally{
+    		closeStream(response);
+    	}
+	}
+	
 	private String builderCookiesStr(List<Cookie> cookies) {
 		StringBuilder str = new StringBuilder();
 		cookies.forEach(o->{
@@ -149,7 +168,7 @@ public class HttpService {
         		return null;
         	}
     		HttpEntity entity = httpResponse.getEntity();
-            return EntityUtils.toString(entity,"utf-8");  
+            return EntityUtils.toString(entity,"UTF-8");  
     	}catch(Exception e){
     		logger.error("http返回数据转字符出现异常");  
     	}

@@ -62,7 +62,7 @@ public class XiaoMiView extends AbstractXiaoMiFunction{
 		 * 购买链接
 		 */
 		name = new Label(shell, SWT.PUSH);
-		name.setText("商品名称:");
+		name.setText("商品名称/链接:");
 		name.setLocation(20, 30);
 		name.setSize(100, 20);
 		

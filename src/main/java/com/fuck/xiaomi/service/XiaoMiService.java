@@ -1,8 +1,10 @@
 package com.fuck.xiaomi.service;
 
 
+import java.net.URLEncoder;
 import java.util.List;
 import java.util.Random;
+import java.util.Set;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 
@@ -10,6 +12,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.fuck.xiaomi.annotation.Async;
 import com.fuck.xiaomi.annotation.Resource;
@@ -23,8 +26,10 @@ import com.fuck.xiaomi.manage.MyThreadPool;
 import com.fuck.xiaomi.manage.StatusManage;
 import com.fuck.xiaomi.manage.Config;
 import com.fuck.xiaomi.pojo.Cookie;
+import com.fuck.xiaomi.pojo.GoodsConfig;
 import com.fuck.xiaomi.pojo.User;
 import com.fuck.xiaomi.utils.FileUtil;
+import com.google.common.collect.Lists;
 
 /**
  * 小米抢购服务
@@ -128,13 +133,13 @@ public class XiaoMiService {
 		if(!StatusManage.isLogin){
 			return;
 		}
-		getGoodsLink();
+		queryBuyCartLink();
 		
 	}
 	@Async
-	public void getGoodsLink(){
+	public void queryBuyCartLink(){
 		long startTime = System.currentTimeMillis();
-		String result = httpService.execute(FilePathManage.getGoodsLinkJs);
+		String result = httpService.execute(FilePathManage.queryBuyCartLinkJs);
 		if(result.startsWith("http")){
 			Config.goodsInfo.getBuyUrls().add(result);
 			logger.info("已获取购买链接({}):{}ms",Config.goodsInfo.getBuyUrls().size(),System.currentTimeMillis()-startTime);
@@ -234,6 +239,146 @@ public class XiaoMiService {
 			logger.error("parseBuyResult err:{}",re);
 			return false;
 		}
+	}
+	
+	/**
+	 * 查询商品详情
+	 * @param url
+	 * @return
+	 */
+	public GoodsConfig queryGoodsInfo(String url){
+		try{
+			String goodsId = url.substring(url.indexOf("product")+8,url.indexOf("html")-1);
+			String goodInfoUrl = "https://order.mi.com/product/get?jsonpcallback=proget2callback&product_id="+goodsId+"&_=1529911856856";
+			String ret = httpService.getXiaomi(goodInfoUrl, url);
+			return parseGoodsInfo(ret,url);
+		}catch(Exception e ){
+			logger.error("queryGoodsInfo by:{} err",url,e);
+			return null;
+		}
+		
+	}
+	/**
+	 * 解析商品详情
+	 * @param ret
+	 * @param url
+	 * @return
+	 */
+
+	private GoodsConfig parseGoodsInfo(String ret,String url) {
+		if(ret==null){
+			return null;
+		}
+		GoodsConfig goodsConfig = new GoodsConfig();
+		String substring = ret.substring(ret.indexOf("(")+1,ret.lastIndexOf(")"));
+		JSONObject parseObject = JSON.parseObject(substring);
+		Integer code = parseObject.getInteger("code");
+		if(code!=1){
+			logger.error("错误码:{}",code);
+			return null;
+		}
+		JSONObject data = parseObject.getJSONObject("data");
+		goodsConfig.setName(data.getString("name"));
+		JSONArray list = data.getJSONArray("list");
+		List<String> versions = Lists.newArrayList();
+		List<String> colors = Lists.newArrayList();
+		for(int i =0;i<list.size();i++){
+			JSONObject jsonObject = list.getJSONObject(i);
+			if(jsonObject.getJSONArray("list")==null){
+				String color = jsonObject.getString("value");
+				colors.add(color);
+			}else{
+				String version = jsonObject.getString("value");
+				versions.add(version);
+				JSONArray jsonArray = jsonObject.getJSONArray("list");
+				if(jsonArray.size()>colors.size()){
+					colors = Lists.newArrayList();
+					for(int j = 0;j<jsonArray.size();j++){
+						JSONObject jsonObject1 = jsonArray.getJSONObject(j);
+						String color = jsonObject1.getString("value");
+						colors.add(color);
+					}
+				}
+			}
+		}
+		goodsConfig.setUrl(url);
+		goodsConfig.setVersion(versions);
+		goodsConfig.setColor(colors);
+		return goodsConfig;
+	}
+	/**
+	 * 搜索商品
+	 * @param name
+	 * @return
+	 */
+	public String searchGoods(String name) {
+		if(name.startsWith("http")){
+			if(!name.startsWith("https://item.mi.com/product/")){
+				return "(不支持该链接)";
+			}
+			Config.goodsConfig = queryGoodsInfo(name);
+			if(Config.goodsConfig==null){
+				return "(未找到该商品)";
+			}
+			Config.goodsConfigs.put(Config.goodsConfig.getName(), Config.goodsConfig);
+			FileUtil.writeToFile(JSON.toJSONString(Config.goodsConfigs), FilePathManage.goodsInfoDb);
+			return null;
+		}
+		GoodsConfig goodsConfig = Config.goodsConfigs.get(name);
+		if(goodsConfig==null){
+			Set<String> keySet = Config.goodsConfigs.keySet();
+			for(String key : keySet){
+				if(key.contains(name)||name.contains(key)){
+					goodsConfig = Config.goodsConfigs.get(key);
+					break;
+				}
+			}
+		}
+		Config.goodsConfig = goodsConfig;
+		return Config.goodsConfig==null?"(商品暂未收录，试试商品地址)":null;
+	}
+	/**
+	 * 查询商品购买页面url
+	 * @param url
+	 * @return
+	 */
+	public String queryBuyPageUrl(String url) {
+		try{
+			if(url.indexOf("?")!=-1){
+				url = url.substring(0, url.indexOf("?"));
+			}
+			String goUrl = "https://order.mi.com/product/gettabinfo?jsonpcallback=jQuery1113041140715231454394_"
+					+System.currentTimeMillis()
+					+"&url="+URLEncoder.encode(url,"utf-8")
+					+"&_="+System.currentTimeMillis();
+			String ret = httpService.getXiaomi(goUrl, url);
+			return parseBuyPageUrl(ret);
+		}catch(Exception e){
+			logger.error("queryBuyPageUrl by:{} err",url,e);
+			return null;
+		}
+	}
+	/**
+	 * 解析商品购买页面
+	 * @param ret
+	 * @return
+	 */
+	public String parseBuyPageUrl(String ret){
+		if(ret==null){
+			return null;
+		}
+		ret = ret.substring(ret.indexOf("(")+1, ret.lastIndexOf(")"));
+		JSONObject parseObject = JSON.parseObject(ret);
+		Integer code = parseObject.getInteger("code");
+		if(code!=1){
+			logger.error("错误码:{}",code);
+			return null;
+		}
+		String id = parseObject.getJSONObject("data").getJSONObject("link").getString("product_id");
+		if(id==null){
+			return null;
+		}
+		return "https://item.mi.com/product/"+id+".html";
 	}
 	
 }

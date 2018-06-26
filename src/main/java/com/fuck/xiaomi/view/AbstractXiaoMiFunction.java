@@ -139,9 +139,9 @@ public abstract class AbstractXiaoMiFunction {
 					if(name.length()==0){
 						return;
 					}
-					xiaoMiController.searchGoods(name);
-					if(Config.goodsConfig==null){
-						getNameText().setText(name+"(该商品不存在)");
+					String errmsg = xiaoMiController.searchGoods(name);
+					if(errmsg!=null){
+						getNameText().setText(name+errmsg);
 						return;
 					}
 					getShell().setText(Config.goodsConfig.getName());
@@ -184,9 +184,9 @@ public abstract class AbstractXiaoMiFunction {
 			if(Config.goodsConfig==null||!name.equals(Config.goodsConfig.getName())){
 				throw new Exception("请先搜索商品");
 			}
-			int index1 = getOption1().getSelectionIndex();
-			int index2 = getOption2().getSelectionIndex();
-			Config.goodsInfo = new GoodsInfo(Config.goodsConfig.getUrl(),index1,index2);
+			String version = getOption1().getItem(getOption1().getSelectionIndex());
+			String color = getOption2().getItem(getOption2().getSelectionIndex());
+			Config.goodsInfo = new GoodsInfo(Config.goodsConfig.getUrl(),version,color);
 			String buyTime = getBuyTimeText().getText().trim();
 			String duration = getDurationText().getText().trim();
 			Config.customRule = new CustomRule(buyTime,duration);
@@ -194,6 +194,7 @@ public abstract class AbstractXiaoMiFunction {
 			String user = getUserText().getText().trim();
 			String password = getPasswordText().getText().trim();
 			Config.user = new User(user,password);
+			
 			
 		}
 		
