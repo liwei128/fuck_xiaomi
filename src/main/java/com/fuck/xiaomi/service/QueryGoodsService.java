@@ -44,6 +44,7 @@ public class QueryGoodsService {
 	 */
 	public void queryHomePage() {
 		logger.info("主页商品获取开始");
+		long startTime = System.currentTimeMillis();
 		try{
 			String ret = httpService.execute(FilePathManage.queryHomeGoodsJs);
 			if(ret.length()==0){
@@ -74,23 +75,24 @@ public class QueryGoodsService {
 		}catch(Exception e){
 			logger.error("查询商品列表失败",e);
 		}
-		logger.info("主页商品获取完成");
+		logger.info("主页商品获取完成,time:{}ms",System.currentTimeMillis()-startTime);
 	}
 	/**
 	 * 查询商品购买页面
 	 * @throws InterruptedException 
 	 */
 	public void queryBuyPageUrl() throws InterruptedException{
+		long startTime = System.currentTimeMillis();
 		buyUrlCount = new CountDownLatch(goodsHomeUrl.size());  
 		logger.info("商品购买页面获取开始");
 		for(int i =0;i<goodsHomeUrl.size();i++){
-			if(i%10==0&&i!=0){
-				Thread.sleep(1000);
+			if(i%15==0&&i!=0){
+				Thread.sleep(500);
 			}
 			queryBuyPageUrl(goodsHomeUrl.get(i));
 		}
 		buyUrlCount.await();
-		logger.info("商品购买页面获取完成");
+		logger.info("商品购买页面获取完成,数量:{},时间:{}ms",buyPageUrls.size(),System.currentTimeMillis()-startTime);
 	}
 	@Async
 	public void queryBuyPageUrl(String url) {
@@ -113,8 +115,8 @@ public class QueryGoodsService {
 		goodsInfoCount = new CountDownLatch(buyPageUrls.size());
 		logger.info("商品详情获取开始");
 		for(int i =0;i<buyPageUrls.size();i++){
-			if(i%10==0&&i!=0){
-				Thread.sleep(1000);
+			if(i%15==0&&i!=0){
+				Thread.sleep(500);
 			}
 			queryGoodsInfo(buyPageUrls.get(i));
 		}
@@ -123,8 +125,10 @@ public class QueryGoodsService {
 	}
 	@Async
 	public void queryGoodsInfo(String url) {
+		long startTime = System.currentTimeMillis();
 		GoodsConfig queryGoodsInfo = xiaoMiService.queryGoodsInfo(url);
 		if(queryGoodsInfo!=null){
+			logger.info("{},time:{}ms",queryGoodsInfo.getName(),System.currentTimeMillis()-startTime);
 			GoodsInfoStorage.put(queryGoodsInfo.getName(), queryGoodsInfo);
 		}else{
 			logger.error("queryGoodsInfo fail:{}",url);
