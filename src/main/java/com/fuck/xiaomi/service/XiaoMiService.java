@@ -126,9 +126,9 @@ public class XiaoMiService {
 	}
 	
 	/**
-	 * 每3秒开一个线程,去获取购买url
+	 * 每2.5秒开一个线程,去获取购买url
 	 */
-	@Timing(initialDelay = 0, period = 3, type = TimingType.FIXED_RATE, unit = TimeUnit.SECONDS)
+	@Timing(initialDelay = 0, period = 2500, type = TimingType.FIXED_RATE, unit = TimeUnit.MILLISECONDS)
 	public void getBuyUrl(){
 		if(!StatusManage.isLogin){
 			return;
@@ -200,11 +200,11 @@ public class XiaoMiService {
 			getBuyUrl();
 			buyGoodsTask();
 			
-		}, Config.customRule.getBuyTime(), TimeUnit.MILLISECONDS);
+		}, Config.customRule.getBuyTime()-System.currentTimeMillis(), TimeUnit.MILLISECONDS);
 		//抢购时间截止
 		stop = MyThreadPool.schedule(()->{
 			stop("抢购时间截止，停止抢购");
-		}, Config.customRule.getEndTime(), TimeUnit.MILLISECONDS);
+		}, Config.customRule.getEndTime()-System.currentTimeMillis(), TimeUnit.MILLISECONDS);
 
 	}
 	@Stop(methods = { "buyGoodsTask","getBuyUrl"})
