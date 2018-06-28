@@ -51,13 +51,12 @@ public class CustomRule {
 		}catch(Exception e){
 			throw new Exception("时间格式不正确");
 		}
-		if(time-System.currentTimeMillis()<0){
+		this.buyTime = time-5*1000;
+		
+		if(buyTime-System.currentTimeMillis()<0){
 			throw new Exception("貌似错过了抢购时间");
 		}
-		if(time-System.currentTimeMillis()<30*1000){
-			throw new Exception("时间太紧，来不及登录啊");
-		}
-		this.buyTime = time-5*1000;
+		
 		this.endTime = time+minute*60*1000;
 	}
 	
