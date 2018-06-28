@@ -159,14 +159,14 @@ public class XiaoMiService {
 	 * @param buyUrl
 	 * @param cookies
 	 */
-	@Timing(initialDelay = 0, period = 300, type = TimingType.FIXED_RATE, unit = TimeUnit.MILLISECONDS)
+	@Timing(initialDelay = 0, period = 100, type = TimingType.FIXED_RATE, unit = TimeUnit.MILLISECONDS)
 	public void buyGoodsTask() {
 		if(StatusManage.isLogin&&Config.goodsInfo.getBuyUrls().size()>0){
 			buy(Config.goodsInfo.getBuyUrls(),Config.user.getCookies());
 		}
 	}
 	
-	@Async(30)
+	@Async
 	public void buy(List<String> buyUrl, List<Cookie> cookies){
 		String url = selectOneUrl(buyUrl);
 		long start = System.currentTimeMillis();
