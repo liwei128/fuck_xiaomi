@@ -28,11 +28,11 @@ public class MyThreadPool {
 	/**
 	 * 线程池基本大小
 	 */
-	private static int corePoolSize = 100;
+	private static int corePoolSize = 60;
 	/**
 	 * 线程池最大数量
 	 */
-	private static int maxPoolSize = 200;
+	private static int maxPoolSize = 100;
 	/**
 	 * 线程池维护线程所允许的空闲时间
 	 */
