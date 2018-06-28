@@ -249,7 +249,8 @@ public class XiaoMiService {
 	public GoodsConfig queryGoodsInfo(String url){
 		try{
 			String goodsId = url.substring(url.indexOf("product")+8,url.indexOf("html")-1);
-			String goodInfoUrl = "https://order.mi.com/product/get?jsonpcallback=proget2callback&product_id="+goodsId+"&_=1529911856856";
+			String goodInfoUrl = "https://order.mi.com/product/get?jsonpcallback=proget2callback&product_id="
+			+goodsId+"&_="+System.currentTimeMillis();
 			String ret = httpService.getXiaomi(goodInfoUrl, url);
 			return parseGoodsInfo(ret,url);
 		}catch(Exception e ){
