@@ -147,9 +147,6 @@ public class XiaoMiService {
 	}
 	@Async(value = 3,interval = 1000)
 	public void submitOrder() {
-		if(StatusManage.submitCount.incrementAndGet()>3){
-			return;
-		}
 		long start = System.currentTimeMillis();
 		String result = httpService.execute(FilePathManage.submitOrderJs);
 		if(result.length()>0){
@@ -177,8 +174,10 @@ public class XiaoMiService {
 		if(isBuySuccess(re)){
 			logger.info("已加入购物车,{}ms",System.currentTimeMillis()-start);
 			stop("恭喜！抢购成功，赶紧去购物车付款吧！");
+			if(StatusManage.submitCount.incrementAndGet()>1){
+				return;
+			}
 			submitOrder();
-			return;
 		}
 			
 	}
