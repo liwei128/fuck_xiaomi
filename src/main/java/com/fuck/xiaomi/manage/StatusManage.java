@@ -1,5 +1,6 @@
 package com.fuck.xiaomi.manage;
 
+import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * 爬虫状态标志
@@ -17,6 +18,9 @@ public class StatusManage {
 	
 	//结束消息
 	public static volatile String endMsg = "";
+	
+	//提交订单的次数
+	public static AtomicInteger submitCount = new AtomicInteger(0);
 
 	
 }
