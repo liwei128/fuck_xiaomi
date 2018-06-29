@@ -128,7 +128,7 @@ public class XiaoMiService {
 	/**
 	 * 每2.5秒开一个线程,去获取购买url
 	 */
-	@Timing(initialDelay = 0, period = 2500, type = TimingType.FIXED_RATE, unit = TimeUnit.MILLISECONDS)
+	@Timing(initialDelay = 0, period = 2000, type = TimingType.FIXED_RATE, unit = TimeUnit.MILLISECONDS)
 	public void getBuyUrl(){
 		if(!StatusManage.isLogin){
 			return;
