@@ -12,7 +12,7 @@ import com.alibaba.fastjson.JSON;
 public class CustomRule {
 	
 	//抢购时间
-	private long buyTime;//提前5s,考虑时间误差
+	private long buyTime;//提前3.5s,考虑时间误差
 	
 	//抢购截止时间
 	private long endTime;
@@ -51,7 +51,7 @@ public class CustomRule {
 		}catch(Exception e){
 			throw new Exception("时间格式不正确");
 		}
-		this.buyTime = time-2*1000;
+		this.buyTime = time-3500;
 		
 		if(buyTime-System.currentTimeMillis()<0){
 			throw new Exception("貌似错过了抢购时间");
