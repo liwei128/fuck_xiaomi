@@ -1,5 +1,6 @@
 package com.fuck.xiaomi;
 
+
 import com.fuck.xiaomi.view.XiaoMiView;
 
 

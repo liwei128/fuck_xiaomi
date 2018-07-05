@@ -7,6 +7,7 @@ package com.fuck.xiaomi.service;
 
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.Semaphore;
 import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
@@ -36,9 +37,6 @@ public class QueryGoodsService {
 	
 	private List<String> buyPageUrls = Lists.newArrayList();
 	
-	private CountDownLatch buyUrlCount;
-	
-	private CountDownLatch goodsInfoCount;
 	/**
 	 * 查询所有商品主页
 	 */
@@ -83,19 +81,19 @@ public class QueryGoodsService {
 	 */
 	public void queryBuyPageUrl() throws InterruptedException{
 		long startTime = System.currentTimeMillis();
-		buyUrlCount = new CountDownLatch(goodsHomeUrl.size());  
+		CountDownLatch buyUrlCount = new CountDownLatch(goodsHomeUrl.size()); 
+		Semaphore semaphore = new Semaphore(15);
 		logger.info("商品购买页面获取开始");
-		for(int i =0;i<goodsHomeUrl.size();i++){
-			if(i%15==0&&i!=0){
-				Thread.sleep(500);
-			}
-			queryBuyPageUrl(goodsHomeUrl.get(i));
-		}
+		goodsHomeUrl.forEach(o->{
+			semaphore.acquireUninterruptibly();
+			queryBuyPageUrl(o,buyUrlCount);
+			semaphore.release();
+		});
 		buyUrlCount.await();
 		logger.info("商品购买页面获取完成,数量:{},时间:{}ms",buyPageUrls.size(),System.currentTimeMillis()-startTime);
 	}
 	@Async
-	public void queryBuyPageUrl(String url) {
+	public void queryBuyPageUrl(String url,CountDownLatch buyUrlCount) {
 		String buyPageUrl = xiaoMiService.queryBuyPageUrl(url);
 		if(buyPageUrl==null){
 			logger.error("queryBuyPageUrl fail:{}",url);
@@ -103,28 +101,26 @@ public class QueryGoodsService {
 			buyPageUrls.add(buyPageUrl);
 		}
 		buyUrlCount.countDown();
-		
-		
-		
+
 	}
 	/**
 	 * 查询商品详情
 	 * @throws InterruptedException 
 	 */
 	public void queryGoodsInfo() throws InterruptedException{
-		goodsInfoCount = new CountDownLatch(buyPageUrls.size());
+		CountDownLatch goodsInfoCount = new CountDownLatch(buyPageUrls.size());
+		Semaphore semaphore = new Semaphore(15);
 		logger.info("商品详情获取开始");
-		for(int i =0;i<buyPageUrls.size();i++){
-			if(i%15==0&&i!=0){
-				Thread.sleep(500);
-			}
-			queryGoodsInfo(buyPageUrls.get(i));
-		}
+		buyPageUrls.forEach(o->{
+			semaphore.acquireUninterruptibly();
+			queryGoodsInfo(o,goodsInfoCount);
+			semaphore.release();
+		});
 		goodsInfoCount.await();
 		logger.info("商品详情获取完成");
 	}
 	@Async
-	public void queryGoodsInfo(String url) {
+	public void queryGoodsInfo(String url,CountDownLatch goodsInfoCount) {
 		long startTime = System.currentTimeMillis();
 		GoodsConfig queryGoodsInfo = xiaoMiService.queryGoodsInfo(url);
 		if(queryGoodsInfo!=null){
