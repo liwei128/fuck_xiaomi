@@ -86,20 +86,20 @@ public class QueryGoodsService {
 		logger.info("商品购买页面获取开始");
 		goodsHomeUrl.forEach(o->{
 			semaphore.acquireUninterruptibly();
-			queryBuyPageUrl(o,buyUrlCount);
-			semaphore.release();
+			queryBuyPageUrl(o,buyUrlCount,semaphore);
 		});
 		buyUrlCount.await();
 		logger.info("商品购买页面获取完成,数量:{},时间:{}ms",buyPageUrls.size(),System.currentTimeMillis()-startTime);
 	}
 	@Async
-	public void queryBuyPageUrl(String url,CountDownLatch buyUrlCount) {
+	public void queryBuyPageUrl(String url,CountDownLatch buyUrlCount,Semaphore semaphore) {
 		String buyPageUrl = xiaoMiService.queryBuyPageUrl(url);
 		if(buyPageUrl==null){
 			logger.error("queryBuyPageUrl fail:{}",url);
 		}else{
 			buyPageUrls.add(buyPageUrl);
 		}
+		semaphore.release();
 		buyUrlCount.countDown();
 
 	}
@@ -113,14 +113,13 @@ public class QueryGoodsService {
 		logger.info("商品详情获取开始");
 		buyPageUrls.forEach(o->{
 			semaphore.acquireUninterruptibly();
-			queryGoodsInfo(o,goodsInfoCount);
-			semaphore.release();
+			queryGoodsInfo(o,goodsInfoCount,semaphore);
 		});
 		goodsInfoCount.await();
 		logger.info("商品详情获取完成");
 	}
 	@Async
-	public void queryGoodsInfo(String url,CountDownLatch goodsInfoCount) {
+	public void queryGoodsInfo(String url,CountDownLatch goodsInfoCount,Semaphore semaphore) {
 		long startTime = System.currentTimeMillis();
 		GoodsConfig queryGoodsInfo = xiaoMiService.queryGoodsInfo(url);
 		if(queryGoodsInfo!=null){
@@ -129,6 +128,7 @@ public class QueryGoodsService {
 		}else{
 			logger.error("queryGoodsInfo fail:{}",url);
 		}
+		semaphore.release();
 		goodsInfoCount.countDown();
 	}
 	
