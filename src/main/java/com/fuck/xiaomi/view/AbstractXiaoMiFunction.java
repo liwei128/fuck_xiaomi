@@ -180,7 +180,7 @@ public abstract class AbstractXiaoMiFunction {
 		}
 		public void readParameter() throws Exception {
 			
-			String name = getNameText().getText().trim();
+			String name = getNameText().getText();
 			if(Config.goodsConfig==null||!name.equals(Config.goodsConfig.getName())){
 				throw new Exception("请先搜索商品");
 			}

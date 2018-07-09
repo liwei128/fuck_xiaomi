@@ -40,6 +40,7 @@ public class XiaoMiController {
 		
 		StatusManage.isLogin = false;
 		StatusManage.submitCount.set(0);
+		StatusManage.cartCount.set(0);
 		Config.goodsInfo.getBuyUrls().clear();
 		
 		FileUtil.checkPath(FilePathManage.configPath);

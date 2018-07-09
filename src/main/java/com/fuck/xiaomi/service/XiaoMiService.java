@@ -166,13 +166,14 @@ public class XiaoMiService {
 		}
 	}
 	
-	@Async
+	@Async(3)
 	public void buy(List<String> buyUrl, List<Cookie> cookies){
+		int count = StatusManage.cartCount.incrementAndGet();
 		String url = selectOneUrl(buyUrl);
 		long start = System.currentTimeMillis();
 		String re = httpService.getByCookies(url, cookies);
 		if(isBuySuccess(re)){
-			logger.info("已加入购物车,{}ms",System.currentTimeMillis()-start);
+			logger.info("提交购物车成功({}),{}ms",count,System.currentTimeMillis()-start);
 			stop("恭喜！抢购成功，赶紧去购物车付款吧！");
 			if(StatusManage.submitCount.incrementAndGet()>1){
 				return;

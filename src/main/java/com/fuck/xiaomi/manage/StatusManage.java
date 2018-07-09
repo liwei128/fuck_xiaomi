@@ -21,6 +21,9 @@ public class StatusManage {
 	
 	//提交订单的次数
 	public static AtomicInteger submitCount = new AtomicInteger(0);
+	
+	//添加购物车的次数
+	public static AtomicInteger cartCount = new AtomicInteger(0);
 
 	
 }
