@@ -128,7 +128,7 @@ public class XiaoMiService {
 	/**
 	 * 每2秒开一个线程,去获取购买url
 	 */
-	@Timing(initialDelay = 0, period = 2000, type = TimingType.FIXED_RATE, unit = TimeUnit.MILLISECONDS)
+	@Timing(initialDelay = 0, period = 1500, type = TimingType.FIXED_RATE, unit = TimeUnit.MILLISECONDS)
 	public void getBuyUrl(){
 		if(!StatusManage.isLogin){
 			return;
@@ -184,14 +184,11 @@ public class XiaoMiService {
 	}
 	
 	public String selectOneUrl(List<String> buyUrl) {
-		Random random = new Random();
-		int index = 0;
-		if(buyUrl.size()<5){
-			index = random.nextInt(buyUrl.size());
-		}else{
-			index = random.nextInt(5)+buyUrl.size()-5;
+		int randomNum = new Random().nextInt(2);
+		if(buyUrl.size()==1){
+			return buyUrl.get(0);
 		}
-		return buyUrl.get(index);
+		return buyUrl.get(buyUrl.size()-1-randomNum);
 	}
 
 	public void start(){
